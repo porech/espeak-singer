@@ -16,6 +16,15 @@ language = sys.argv[2]
 
 html = requests.get(lyric_url).text
 soup = BeautifulSoup(html, features="html.parser")
+
+author_text = soup.find("div", {"class": "lyrics-title"}).find("h3").get_text()
+trimmed_author_text = " ".join(map(lambda t: t.strip(), author_text.split("\n"))).strip()
+
+title_text = soup.find("div", {"class": "lyrics-title"}).find("div", {"class": "pull-left"}).get_text().strip()
+
+title = f"{trimmed_author_text} - {title_text}"
+print(f"{title} (performed by espeak)")
+
 lyrics_div = soup.find("div", {"class": "lyric-text"})
 x = 0
 tempdir = tempfile.mkdtemp()
