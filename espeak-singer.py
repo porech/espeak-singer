@@ -22,8 +22,8 @@ trimmed_author_text = " ".join(map(lambda t: t.strip(), author_text.split("\n"))
 
 title_text = soup.find("div", {"class": "lyrics-title"}).find("div", {"class": "pull-left"}).get_text().strip()
 
-title = f"{trimmed_author_text} - {title_text}"
-print(f"{title} (performed by espeak)")
+title = f"{trimmed_author_text} - {title_text} (performed by espeak)"
+print(title)
 
 lyrics_div = soup.find("div", {"class": "lyric-text"})
 x = 0
@@ -38,6 +38,8 @@ for p in lyrics_div.find_all("p"):
     if 'copyright-lyrics-text' in p_class:
         continue
     p_text = p.get_text().strip()
+    if p_text.startswith('[') or p_text.endswith(']'):
+        continue
     joined_path = os.path.join(tempdir, f"{x}")
     with open(os.path.join(f"{joined_path}.txt"), "w") as f:
         f.write(p_text.replace("\n", ". "))
@@ -52,3 +54,4 @@ with open(os.path.join(tempdir, "list.txt"), "w") as f:
     f.write("\r\n".join(map(lambda y: f"file '{os.path.join(tempdir, str(y))}.mp4'", range(0, x))))
 subprocess.run(["ffmpeg", "-f", "concat", "-safe", "0", "-i", os.path.join(tempdir, "list.txt"), "-c", "copy", output])
 shutil.rmtree(tempdir)
+print(title)
