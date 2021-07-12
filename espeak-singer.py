@@ -7,7 +7,7 @@ i.e. https://www.testietraduzioni.it/lyrics/mille-fedez/
 """
 
 if len(sys.argv) < 4:
-    print(f"Usage: python {sys.argv[0]} lyric_url language")
+    print(f"Usage: python {sys.argv[0]} lyric_url language output.mp4")
     sys.exit(1)
 
 lyric_url = sys.argv[1]
