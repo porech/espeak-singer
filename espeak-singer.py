@@ -1,18 +1,18 @@
-import sys, os, requests, tempfile
+import sys, os, requests, tempfile, shutil, subprocess
 from bs4 import BeautifulSoup
-import subprocess
 
 """
 First argument: link to lyrics from testietraduzioni.it 
 i.e. https://www.testietraduzioni.it/lyrics/mille-fedez/
 """
 
-if len(sys.argv) < 3:
+if len(sys.argv) < 4:
     print(f"Usage: python {sys.argv[0]} lyric_url language")
     sys.exit(1)
 
 lyric_url = sys.argv[1]
 language = sys.argv[2]
+output = sys.argv[3]
 
 html = requests.get(lyric_url).text
 soup = BeautifulSoup(html, features="html.parser")
@@ -50,4 +50,5 @@ for p in lyrics_div.find_all("p"):
 
 with open(os.path.join(tempdir, "list.txt"), "w") as f:
     f.write("\r\n".join(map(lambda y: f"file '{os.path.join(tempdir, str(y))}.mp4'", range(0, x))))
-subprocess.run(["ffmpeg", "-f", "concat", "-safe", "0", "-i", os.path.join(tempdir, "list.txt"), "-c", "copy", os.path.join(tempdir, "result.mp4")])
+subprocess.run(["ffmpeg", "-f", "concat", "-safe", "0", "-i", os.path.join(tempdir, "list.txt"), "-c", "copy", output])
+shutil.rmtree(tempdir)
