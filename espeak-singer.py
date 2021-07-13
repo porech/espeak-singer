@@ -25,7 +25,7 @@ title_text = soup.find("div", {"class": "lyrics-title"}).find("div", {"class": "
 title = f"{trimmed_author_text} - {title_text} (performed by espeak)"
 print(title)
 
-lyrics_div = soup.find("div", {"class": "lyric-text"})
+lyrics_div = soup.find_all("div", {"class": "lyric-text"}).pop()
 x = 0
 tempdir = tempfile.mkdtemp()
 print(f"Temp folder: {tempdir}")
