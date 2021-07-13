@@ -130,3 +130,9 @@ dmypy.json
 
 # Google auth files
 /client_secrets.json
+
+# Generated files
+*.mp4
+
+# Mac
+.DS_Store
