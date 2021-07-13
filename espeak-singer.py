@@ -1,5 +1,6 @@
 import sys, os, requests, tempfile, shutil, subprocess
 from bs4 import BeautifulSoup
+from transliterate import translit
 
 """
 First argument: link to lyrics from testietraduzioni.it 
@@ -37,7 +38,7 @@ for p in lyrics_div.find_all("p"):
         pass
     if 'copyright-lyrics-text' in p_class:
         continue
-    p_text = p.get_text().strip()
+    p_text = translit(p.get_text().strip(), 'ru', reversed=True)
     if p_text.startswith('[') or p_text.endswith(']'):
         continue
     joined_path = os.path.join(tempdir, f"{x}")
