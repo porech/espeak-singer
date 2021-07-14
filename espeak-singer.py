@@ -28,7 +28,7 @@ def txt_file(path):
             p_texts.append("\n".join(p_text).strip())
             p_text = []
         else:
-            p_text.append(line)
+            p_text.append(translit(line, 'ru', reversed=True).strip())
     p_texts.append("\n".join(p_text).strip())
     return title, p_texts
 
@@ -83,7 +83,7 @@ def angolotesti(url):
             p_texts.append("\n".join(p_text).strip())
             p_text = []
         else:
-            p_text.append(line)
+            p_text.append(translit(line, 'ru', reversed=True).strip())
     p_texts.append("\n".join(p_text).strip())
     return title, p_texts
 
