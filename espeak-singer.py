@@ -3,8 +3,9 @@ from bs4 import BeautifulSoup
 from transliterate import translit
 
 """
-First argument: link to lyrics from testietraduzioni.it 
-i.e. https://www.testietraduzioni.it/lyrics/mille-fedez/
+First argument: link to lyrics from testietraduzioni.it , i.e. https://www.testietraduzioni.it/lyrics/mille-fedez/
+Second argument: language , i.e. en
+Third argument: output file path, i.e. mille.mp4
 """
 
 if len(sys.argv) < 4:
