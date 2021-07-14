@@ -16,6 +16,22 @@ lyric_url = sys.argv[1]
 language = sys.argv[2]
 output = sys.argv[3]
 
+def txt_file(path):
+    p_texts = []
+    with open(path) as f:
+        lines = [line.strip() for line in f.readlines()]
+    title = lines[0]
+    lines = lines[1:]
+    p_text = []
+    for line in lines:
+        if not line:
+            p_texts.append("\n".join(p_text).strip())
+            p_text = []
+        else:
+            p_text.append(line)
+    p_texts.append("\n".join(p_text).strip())
+    return title, p_texts
+
 def testietraduzioni(url):
     p_texts = []
     html = requests.get(lyric_url).text
@@ -64,15 +80,18 @@ def angolotesti(url):
     p_text = []
     for line in lines:
         if not line:
-            p_texts.append("\n".join(p_text))
+            p_texts.append("\n".join(p_text).strip())
             p_text = []
         else:
             p_text.append(line)
+    p_texts.append("\n".join(p_text).strip())
     return title, p_texts
 
 x = 0
 tempdir = tempfile.mkdtemp()
-if "testietraduzioni.it" in lyric_url:
+if os.path.isfile(lyric_url):
+    title, p_texts = txt_file(lyric_url)
+elif "testietraduzioni.it" in lyric_url:
     title, p_texts = testietraduzioni(lyric_url)
 elif "angolotesti.it" in lyric_url:
     title, p_texts = angolotesti(lyric_url)
