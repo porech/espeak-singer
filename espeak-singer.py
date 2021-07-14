@@ -102,7 +102,7 @@ print(title)
 print(f"Temp folder: {tempdir}")
 for x, p_text in enumerate(p_texts):
     joined_path = os.path.join(tempdir, f"{x}")
-    speech_text = ". ".join([p_line[0].upper() + p_line[1:] for p_line in p_text.split("\n")]).replace(",.", ".")
+    speech_text = ". ".join([p_line[0].upper() + p_line[1:] for p_line in p_text.split("\n")]).replace(",.", ".").replace("?.", "?").replace("!.", "!")
     with open(os.path.join(f"{joined_path}.txt"), "w") as f:
         f.write(speech_text)
         print(speech_text)
