@@ -10,6 +10,6 @@ On ubuntu:
 - Enter the folder
 - Run for example: `python espeak-singer.py https://www.testietraduzioni.it/lyrics/Africa_toto/ en africa.mp4`
 
-The lyrics must be from https://www.testietraduzioni.it , parsing for more websites coming soon.
+The lyrics must be from https://www.testietraduzioni.it or https://www.angolotesti.it , parsing for more websites coming soon.
 
 The second parameter is the language used by espeak. The third is the output file.
