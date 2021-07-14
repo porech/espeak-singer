@@ -16,44 +16,83 @@ lyric_url = sys.argv[1]
 language = sys.argv[2]
 output = sys.argv[3]
 
-html = requests.get(lyric_url).text
-soup = BeautifulSoup(html, features="html.parser")
+def testietraduzioni(url):
+    p_texts = []
+    html = requests.get(lyric_url).text
+    soup = BeautifulSoup(html, features="html.parser")
 
-author_text = soup.find("div", {"class": "lyrics-title"}).find("h3").get_text()
-trimmed_author_text = " ".join(map(lambda t: t.strip(), author_text.split("\n"))).strip()
+    author_text = soup.find("div", {"class": "lyrics-title"}).find("h3").get_text()
+    trimmed_author_text = " ".join(map(lambda t: t.strip(), author_text.split("\n"))).strip()
 
-title_text = soup.find("div", {"class": "lyrics-title"}).find("div", {"class": "pull-left"}).get_text().strip()
+    title_text = soup.find("div", {"class": "lyrics-title"}).find("div", {"class": "pull-left"}).get_text().strip()
 
-title = f"{trimmed_author_text} - {title_text} (performed by espeak)"
-print(title)
+    title = f"{trimmed_author_text} - {title_text}"
 
-lyrics_div = soup.find_all("div", {"class": "lyric-text"}).pop()
+    lyrics_div = soup.find_all("div", {"class": "lyric-text"}).pop()
+    for p in lyrics_div.find_all("p"):
+        p_class = []
+        try:
+            p_class = p["class"]
+        except KeyError:
+            pass
+        if 'copyright-lyrics-text' in p_class:
+            continue
+        p_text = translit(p.get_text(), 'ru', reversed=True).strip()
+        if p_text.startswith('[') or p_text.endswith(']'):
+            continue
+        p_texts.append(p_text)
+    return title, p_texts
+
+def angolotesti(url):
+    p_texts = []
+    html = requests.get(lyric_url).text
+    soup = BeautifulSoup(html, features="html.parser")
+
+    pathway = soup.find("ul", {"class": "pathway"})
+    lis = pathway.find_all("li")
+    author_text = lis[4].get_text().strip()
+    title_text = lis[8].get_text().strip()
+
+    title = f"{author_text} - {title_text}"
+
+    text_div = soup.find("div", {"class": "testo"})
+    for br in text_div.find_all("br"):
+        br.replace_with("\n")
+    for noselect in text_div.find_all("div", {"class": "user-noselection"}):
+        noselect.replace_with("")
+    lines = [line.strip() for line in text_div.get_text().strip().split("\n")]
+    p_text = []
+    for line in lines:
+        if not line:
+            p_texts.append("\n".join(p_text))
+            p_text = []
+        else:
+            p_text.append(line)
+    return title, p_texts
+
 x = 0
 tempdir = tempfile.mkdtemp()
+if "testietraduzioni.it" in lyric_url:
+    title, p_texts = testietraduzioni(lyric_url)
+elif "angolotesti.it" in lyric_url:
+    title, p_texts = angolotesti(lyric_url)
+else:
+    raise ValueError("unrecoginzed url")
+title = f"{title} (performed by espeak)"
+print(title)
 print(f"Temp folder: {tempdir}")
-for p in lyrics_div.find_all("p"):
-    p_class = []
-    try:
-        p_class = p["class"]
-    except KeyError:
-        pass
-    if 'copyright-lyrics-text' in p_class:
-        continue
-    p_text = translit(p.get_text().strip(), 'ru', reversed=True)
-    if p_text.startswith('[') or p_text.endswith(']'):
-        continue
+for x, p_text in enumerate(p_texts):
     joined_path = os.path.join(tempdir, f"{x}")
+    speech_text = ". ".join([p_line[0].upper() + p_line[1:] for p_line in p_text.split("\n")]).replace(",.", ".")
     with open(os.path.join(f"{joined_path}.txt"), "w") as f:
-        f.write(p_text.replace("\n", ". "))
+        f.write(speech_text)
+        print(speech_text)
     subprocess.run(["espeak", "-v", language, "-f", f"{joined_path}.txt", "-w", f"{joined_path}.wav"])
     subprocess.run(["convert", "-size", "1920x1080", "-background", "black", "-bordercolor", "black", "-border", "100x100", "-fill", "white", "-gravity", "Center", f'caption:{p_text}', "-flatten", f"{joined_path}.png"])
     subprocess.run(["ffmpeg", "-loop", "1", "-i", f"{joined_path}.png", "-i", f"{joined_path}.wav", "-c:v", "libx264", "-tune", "stillimage", "-c:a", "aac", "-b:a", "192k", "-pix_fmt", "yuv420p", "-shortest", f"{joined_path}.mp4"])
-    x += 1
-# tempdir = "/tmp/tmpnc0n_u90"
-# x = 8
 
 with open(os.path.join(tempdir, "list.txt"), "w") as f:
-    f.write("\r\n".join(map(lambda y: f"file '{os.path.join(tempdir, str(y))}.mp4'", range(0, x))))
+    f.write("\r\n".join(map(lambda y: f"file '{os.path.join(tempdir, str(y))}.mp4'", range(0, len(p_texts)))))
 subprocess.run(["ffmpeg", "-f", "concat", "-safe", "0", "-i", os.path.join(tempdir, "list.txt"), "-c", "copy", output])
 shutil.rmtree(tempdir)
 print(title)
