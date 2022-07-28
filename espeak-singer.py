@@ -4,16 +4,21 @@ from transliterate import translit
 
 """
 First argument: link to lyrics from testietraduzioni.it , i.e. https://www.testietraduzioni.it/lyrics/mille-fedez/
-Second argument: language , i.e. en
+Second argument: language , i.e. 'en', or https://detectlanguage.com/ API key
 Third argument: output file path, i.e. mille.mp4
 """
 
 if len(sys.argv) < 4:
-    print(f"Usage: python {sys.argv[0]} lyric_url language output.mp4")
+    print(f"Usage: python {sys.argv[0]} lyric_url language-or-api-key output.mp4")
     sys.exit(1)
 
 lyric_url = sys.argv[1]
-language = sys.argv[2]
+if len(sys.argv[2]) == 2:
+    language = sys.argv[2]
+    language_api_key = None
+else:
+    language = None
+    language_api_key = sys.argv[2]
 output = sys.argv[3]
 
 def txt_file(path):
@@ -87,6 +92,17 @@ def angolotesti(url):
     p_texts.append("\n".join(p_text).strip())
     return title, p_texts
 
+
+def get_language_from_api(text):
+    import detectlanguage
+    detectlanguage.configuration.api_key = language_api_key
+    res = detectlanguage.detect(text)
+    reliables = [r for r in res if r['isReliable']]
+    if len(reliables) != 1:
+        raise Exception(f"Could not determine language: {len(reliables)} reliable matches found")
+    return reliables[0]['language']
+
+
 x = 0
 tempdir = tempfile.mkdtemp()
 if os.path.isfile(lyric_url):
@@ -105,8 +121,13 @@ for x, p_text in enumerate(p_texts):
     speech_text = ". ".join([p_line[0].upper() + p_line[1:] for p_line in p_text.split("\n")]).replace(",.", ".").replace("?.", "?").replace("!.", "!")
     with open(os.path.join(f"{joined_path}.txt"), "w") as f:
         f.write(speech_text)
-        print(speech_text)
-    subprocess.run(["espeak", "-v", language, "-f", f"{joined_path}.txt", "-w", f"{joined_path}.wav"])
+    print(speech_text)
+    if language:
+        lang = language
+    else:
+        lang = get_language_from_api(speech_text)
+    print(f"Language: {lang}")
+    subprocess.run(["espeak", "-v", lang, "-f", f"{joined_path}.txt", "-w", f"{joined_path}.wav"])
     subprocess.run(["convert", "-size", "1920x1080", "-background", "black", "-bordercolor", "black", "-border", "100x100", "-fill", "white", "-gravity", "Center", f'caption:{p_text}', "-flatten", f"{joined_path}.png"])
     subprocess.run(["ffmpeg", "-loop", "1", "-i", f"{joined_path}.png", "-i", f"{joined_path}.wav", "-c:v", "libx264", "-tune", "stillimage", "-c:a", "aac", "-b:a", "192k", "-pix_fmt", "yuv420p", "-shortest", f"{joined_path}.mp4"])
 
