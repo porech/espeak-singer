@@ -126,6 +126,8 @@ for x, p_text in enumerate(p_texts):
         lang = language
     else:
         lang = get_language_from_api(speech_text)
+        if lang == "gl":
+            lang = "es"
     print(f"Language: {lang}")
     subprocess.run(["espeak", "-v", lang, "-f", f"{joined_path}.txt", "-w", f"{joined_path}.wav"])
     subprocess.run(["convert", "-size", "1920x1080", "-background", "black", "-bordercolor", "black", "-border", "100x100", "-fill", "white", "-gravity", "Center", f'caption:{p_text}', "-flatten", f"{joined_path}.png"])
